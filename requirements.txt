@@ -1,0 +1,6 @@
+playwright
+qdrant-client
+langgraph
+langchain-openai
+python-dotenv
+pdfplumber
