@@ -70,6 +70,21 @@ The NLP pipeline requires a Google Gemini API key for POS tagging and topic summ
 GOOGLE_API_KEY=your_actual_api_key_here
 ```
 
+### Step 6: Set up Qdrant Vector Database (Optional)
+
+For vector storage and semantic search capabilities:
+
+1. Install Qdrant:
+   ```bash
+   # Using Docker (recommended)
+   docker run -p 6333:6333 qdrant/qdrant
+   ```
+
+2. Verify Qdrant is running:
+   ```bash
+   curl http://localhost:6333/collections
+   ```
+
 ## Usage
 
 ### Step 1: Scrape and Download PDFs
@@ -233,6 +248,15 @@ The project now includes an advanced NLP pipeline with two specialized agents:
   - Create structured dictionaries for database storage
 - **Output**: Clean `RefinedArticle` objects with `article_id`, `tagged_tokens`, and `metadata`
 
+### **Agent 4: Storage** (`store_data.py`)
+- **Role**: Vector Database Manager
+- **Function**: Stores processed articles in Qdrant vector database
+- **Tasks**:
+  - Initialize Qdrant collection 'tigrinya_corpus'
+  - Generate embeddings for article text using Google Generative AI
+  - Store full article data (POS tags, metadata) as payload
+- **Requirements**: Qdrant running locally on port 6333
+
 ### **Main Pipeline** (`main.py`)
 - **Function**: Orchestrates the complete workflow
 - **Flow**: Text Loading → POS Tagging → Grammatical Review → Data Refinement → Storage
@@ -242,6 +266,9 @@ The project now includes an advanced NLP pipeline with two specialized agents:
 ```bash
 # Run complete 3-agent pipeline (recommended)
 python main.py
+
+# Store processed data in Qdrant vector database
+python store_data.py
 
 # Run individual agents
 python agent_tagger.py    # POS tagging only
