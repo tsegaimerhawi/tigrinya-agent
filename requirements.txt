@@ -2,5 +2,7 @@ playwright
 qdrant-client
 langgraph
 langchain-openai
+langchain-google-genai
+google-generativeai
 python-dotenv
 pdfplumber

@@ -1,16 +1,25 @@
-# Tigrinya Agent - Haddas Ertra Newspaper Scraper & Processor
+# Tigrinya Agent - Complete NLP Pipeline
 
-A comprehensive tool for scraping, downloading, and processing Haddas Ertra Tigrinya newspapers from shabait.com. Extracts clean Ge'ez script text suitable for NLP and AI applications.
+A comprehensive tool for scraping, processing, and analyzing Haddas Ertra Tigrinya newspapers from shabait.com. Features a complete NLP pipeline from raw PDF extraction to advanced linguistic analysis.
 
 ## Features
 
+### 📥 **Data Acquisition**
 - 🕷️ **Automated Scraping**: Downloads up to 20+ Haddas Ertra newspaper PDFs
 - 📄 **Multi-page Navigation**: Handles pagination to access older articles
 - 🔍 **Smart PDF Detection**: Locates download links using image-based navigation
-- 🧹 **Text Cleaning**: Removes English words, navigation elements, and noise
+
+### 🧹 **Text Processing**
+- 📖 **PDF Extraction**: Advanced text extraction from newspaper PDFs
 - 🌍 **Ge'ez Script Focus**: Preserves only Tigrinya characters, numbers, and punctuation
-- 📊 **Metadata Tracking**: Complete tracking of download and processing status
-- 🔄 **Batch Processing**: Handles multiple PDFs efficiently
+- 🧹 **Noise Removal**: Eliminates English words, navigation elements, and artifacts
+- 📊 **Quality Validation**: Word count verification and content checks
+
+### 🤖 **NLP Pipeline**
+- 🏷️ **POS Tagging**: Advanced Part-of-Speech analysis with Gemini 2.5 Flash
+- 🔍 **Grammatical Review**: Skeptical Tigrinya grammarian validation
+- ⚖️ **Morphological Analysis**: Prefix detection and compound word handling
+- 🌍 **Geopolitical Focus**: Special attention to Eritrean entities and proper nouns
 
 ## Installation
 
@@ -43,6 +52,22 @@ pip install -r requirements.txt
 
 ```bash
 playwright install chromium
+```
+
+### Step 5: Set up Google Gemini API Key
+
+The NLP pipeline requires a Google Gemini API key for POS tagging and topic summarization.
+
+1. Visit [Google AI Studio](https://aistudio.google.com/)
+2. Sign in with your Google account
+3. Click on "Get API key" or go to API Keys section
+4. Create a new API key for Gemini Flash 2.5
+5. Copy the API key
+6. Open the `.env_config` file and replace `YOUR_API_KEY_HERE` with your actual API key:
+
+```bash
+# In .env_config file:
+GOOGLE_API_KEY=your_actual_api_key_here
 ```
 
 ## Usage
@@ -177,6 +202,58 @@ Validate metadata:
 ```bash
 python -c "import json; print(len(json.load(open('pdf_metadata.json'))))"
 ```
+
+## 🏷️ **POS Tagging Pipeline**
+
+The project now includes an advanced NLP pipeline with two specialized agents:
+
+### **Agent 1: POS Tagger** (`agent_tagger.py`)
+- **Role**: Linguistic Analysis Specialist
+- **Technology**: LangGraph + Gemini 2.5 Flash LLM
+- **Function**: Performs Part-of-Speech tagging on Tigrinya text
+- **Tags**: Noun, Verb, Adjective, Particle (with geopolitical entity focus)
+- **Validation**: Checks for Ge'ez script purity and LLM hallucination
+
+### **Agent 2: Critic** (`agent_critic.py`)
+- **Role**: Senior Tigrinya Grammarian (skeptical personality)
+- **Function**: Validates POS tagging accuracy
+- **Checks**:
+  - Missing morphological prefixes (e.g., prepositions)
+  - Proper noun tagging accuracy
+  - Compound word analysis
+  - Geopolitical entity recognition
+- **Output**: `PASSED` or detailed `FEEDBACK` list
+
+### **Agent 3: Refiner** (`agent_refiner.py`)
+- **Role**: Data Engineer specializing in NLP
+- **Function**: Structures and refines data for storage
+- **Tasks**:
+  - Convert Tigrinya dates to YYYY-MM-DD format
+  - Generate 3-5 word topic summaries
+  - Create structured dictionaries for database storage
+- **Output**: Clean `RefinedArticle` objects with `article_id`, `tagged_tokens`, and `metadata`
+
+### **Main Pipeline** (`main.py`)
+- **Function**: Orchestrates the complete workflow
+- **Flow**: Text Loading → POS Tagging → Grammatical Review → Data Refinement → Storage
+- **Output**: Comprehensive analysis with statistics and feedback
+
+### **Usage**
+```bash
+# Run complete 3-agent pipeline (recommended)
+python main.py
+
+# Run individual agents
+python agent_tagger.py    # POS tagging only
+python agent_critic.py    # Validation only
+python agent_refiner.py   # Data structuring only
+```
+
+### **Output Files**
+- `complete_pipeline_results.json` - Full pipeline results
+- `refined_articles.json` - Structured articles ready for storage
+- `raw_data.json` - Original processed text data
+- `pdf_metadata.json` - Download tracking and metadata
 
 ## Dependencies
 
