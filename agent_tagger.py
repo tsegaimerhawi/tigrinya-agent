@@ -26,19 +26,20 @@ class AgentState(TypedDict):
 
 
 def load_sample_text() -> str:
-    """Load a sample paragraph from raw_data.json for testing."""
+    """Load a sample paragraph from preprocessed_data.json for testing."""
     try:
-        with open('raw_data.json', 'r', encoding='utf-8') as f:
+        with open('preprocessed_data.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
 
-        # Get the first article's text and extract a reasonable paragraph
-        if data and len(data) > 0:
-            full_text = data[0].get('extracted_text', '')
+        # Get the first article's cleaned text
+        articles = data.get('articles', [])
+        if articles and len(articles) > 0:
+            full_text = articles[0].get('cleaned_text', '')
             if not full_text:
-                print("No extracted text found in raw_data.json")
+                print("No cleaned text found in preprocessed_data.json")
                 return ""
 
-            # Extract first 800 characters as a sample paragraph (increased for better context)
+            # Extract first 800 characters as a sample paragraph
             sample_text = full_text[:800].strip()
 
             # Make sure we end at a word boundary
@@ -51,11 +52,31 @@ def load_sample_text() -> str:
             return sample_text
 
     except FileNotFoundError:
-        print("❌ Error: raw_data.json not found. Please run pdf_processor.py first.")
+        print("❌ Error: preprocessed_data.json not found. Please run preprocessor.py first.")
         return ""
     except Exception as e:
         print(f"Error loading sample text: {e}")
         return ""
+
+
+def load_sentences(article_index: int = 0, max_sentences: int = 5) -> list:
+    """Load sentences from preprocessed_data.json for sentence-by-sentence processing."""
+    try:
+        with open('preprocessed_data.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        articles = data.get('articles', [])
+        if articles and len(articles) > article_index:
+            sentences = articles[article_index].get('sentences', [])
+            return sentences[:max_sentences]
+        return []
+
+    except FileNotFoundError:
+        print("❌ Error: preprocessed_data.json not found. Please run preprocessor.py first.")
+        return []
+    except Exception as e:
+        print(f"Error loading sentences: {e}")
+        return []
 
 
 def validate_geez_text(text: str) -> bool:

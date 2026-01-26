@@ -15,21 +15,41 @@ from agent_critic import TigrinyaGrammarianCritic, save_critique_results
 from agent_refiner import TigrinyaDataEngineer, save_refined_article
 
 
-def load_tigrinya_data(filepath: str = 'raw_data.json') -> str:
-    """Load Tigrinya text data for processing"""
+def load_tigrinya_data(filepath: str = 'preprocessed_data.json') -> str:
+    """Load Tigrinya text data for processing from preprocessed data"""
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            # Get the first article's text as sample
-            if data and len(data) > 0:
-                return data[0].get('extracted_text', '')[:1000]  # First 1000 chars
+            # Get the first article's cleaned text as sample
+            articles = data.get('articles', [])
+            if articles and len(articles) > 0:
+                return articles[0].get('cleaned_text', '')[:1000]  # First 1000 chars
             return ""
     except FileNotFoundError:
         print(f"❌ Error: Data file '{filepath}' not found")
+        print("   Please run preprocessor.py first to generate preprocessed_data.json")
         return ""
     except json.JSONDecodeError as e:
         print(f"❌ Error: Invalid JSON in '{filepath}': {e}")
         return ""
+
+
+def load_tigrinya_sentences(filepath: str = 'preprocessed_data.json', article_index: int = 0, max_sentences: int = 5) -> list:
+    """Load Tigrinya sentences for processing from preprocessed data"""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            articles = data.get('articles', [])
+            if articles and len(articles) > article_index:
+                sentences = articles[article_index].get('sentences', [])
+                return sentences[:max_sentences]
+            return []
+    except FileNotFoundError:
+        print(f"❌ Error: Data file '{filepath}' not found")
+        return []
+    except json.JSONDecodeError as e:
+        print(f"❌ Error: Invalid JSON in '{filepath}': {e}")
+        return []
 
 
 def save_pipeline_results(tagger_result: dict, critic_result: dict, filepath: str = 'pipeline_results.json'):
