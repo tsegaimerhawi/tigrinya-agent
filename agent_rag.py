@@ -25,9 +25,9 @@ class TigrinyaRAGAgent:
         self.retriever = TigrinyaRetriever()
         
         # Initialize LLM
-        # Using Gemini 2.5 Pro as requested for better Tigrinya support
+        # Using Gemini 2.5 Flash due to quota limits on Pro
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-pro",
+            model="gemini-2.5-flash",
             temperature=0.3,
             max_tokens=2048
         )
