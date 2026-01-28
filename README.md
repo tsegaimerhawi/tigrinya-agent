@@ -267,9 +267,11 @@ The project now includes an advanced NLP pipeline with two specialized agents:
 A fully functional RAG system allows you to chat with the ingested Tigrinya corpus.
 
 #### **WEB INTERFACE** (New!)
+![Tigrinya Agent Web Interface](assets/images/rag_demo.png)
+
 Run the modern chat interface:
 ```bash
-streamlit run app.py
+python -m streamlit run app.py
 ```
 
 #### **1. Retriever** (`retriever.py`)
