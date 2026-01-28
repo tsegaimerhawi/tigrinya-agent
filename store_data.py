@@ -21,25 +21,31 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 load_dotenv(dotenv_path='.env_config')
 
 
-def initialize_qdrant_collection(client: QdrantClient, collection_name: str = "tigrinya_corpus"):
-    """Initialize Qdrant collection if it doesn't exist"""
+def initialize_qdrant_collection(client: QdrantClient, collection_name: str, vector_size: int = 768):
+    """Initialize Qdrant collection if it doesn't exist or needs update"""
 
     # Check if collection exists
     collections = client.get_collections()
     collection_names = [col.name for col in collections.collections]
 
     if collection_name in collection_names:
-        print(f"✅ Collection '{collection_name}' already exists")
-        return
+        # Check if existing collection has correct config
+        info = client.get_collection(collection_name)
+        if info.config.params.vectors.size != vector_size:
+            print(f"⚠️ Collection '{collection_name}' has dim {info.config.params.vectors.size}, but model has {vector_size}.")
+            print("↻ Recreating collection...")
+            client.delete_collection(collection_name)
+        else:
+            print(f"✅ Collection '{collection_name}' exists with correct dimension ({vector_size})")
+            return
 
     # Create collection with vector parameters
-    # Using 768 dimensions for Google text embeddings
     client.create_collection(
         collection_name=collection_name,
-        vectors_config=VectorParams(size=768, distance=Distance.COSINE),
+        vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
     )
 
-    print(f"✅ Created collection '{collection_name}' with 768-dimensional vectors")
+    print(f"✅ Created collection '{collection_name}' with {vector_size}-dimensional vectors")
 
 
 def load_refined_articles(filepath: str = "refined_articles.json") -> List[Dict]:
@@ -213,13 +219,6 @@ def main():
         print("🔌 Connecting to Qdrant...")
         client = QdrantClient(host=QDRANT_URL, port=QDRANT_PORT)
 
-        # Initialize collection
-        initialize_qdrant_collection(client, COLLECTION_NAME)
-
-        # Verify setup
-        if not verify_qdrant_setup(client, COLLECTION_NAME):
-            return
-
         # Load refined articles
         print("\n📖 Loading refined articles...")
         articles = load_refined_articles()
@@ -231,6 +230,19 @@ def main():
         # Create embedding model
         print("\n🧠 Initializing Google Generative AI embeddings...")
         embeddings_model = create_embedding_model()
+        
+        # Check actual embedding dimension
+        print("📏 Checking embedding dimension...")
+        try:
+            test_embed = embeddings_model.embed_query("test")
+            vector_size = len(test_embed)
+            print(f"   Detected dimension: {vector_size}")
+        except Exception as e:
+            print(f"❌ Failed to get embedding dimension: {e}")
+            return
+
+        # Initialize collection with correct size
+        initialize_qdrant_collection(client, COLLECTION_NAME, vector_size)
 
         # Store articles
         print("\n💾 Storing articles in Qdrant...")
