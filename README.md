@@ -266,6 +266,12 @@ The project now includes an advanced NLP pipeline with two specialized agents:
 
 A fully functional RAG system allows you to chat with the ingested Tigrinya corpus.
 
+#### **WEB INTERFACE** (New!)
+Run the modern chat interface:
+```bash
+streamlit run app.py
+```
+
 #### **1. Retriever** (`retriever.py`)
 - **Engine**: Qdrant Vector Database
 - **Model**: `models/gemini-embedding-001` (3072 dimensions)
