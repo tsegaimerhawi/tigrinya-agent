@@ -262,13 +262,36 @@ The project now includes an advanced NLP pipeline with two specialized agents:
 - **Flow**: Text Loading → POS Tagging → Grammatical Review → Data Refinement → Storage
 - **Output**: Comprehensive analysis with statistics and feedback
 
+### 🧠 **RAG System (Retrieval-Augmented Generation)**
+
+A fully functional RAG system allows you to chat with the ingested Tigrinya corpus.
+
+#### **1. Retriever** (`retriever.py`)
+- **Engine**: Qdrant Vector Database
+- **Model**: `models/gemini-embedding-001` (3072 dimensions)
+- **Function**: Performs semantic search to find relevant articles
+
+#### **2. RAG Agent** (`agent_rag.py`)
+- **Model**: **Gemini 2.5 Flash** (Optimized for speed & quota)
+- **Function**: Answers user questions using retrieved context
+- **Language**: Supports questions in both Tigrinya and English
+
+#### **3. Chat Interface** (`chat.py`)
+- **Type**: CLI (Command Line Interface)
+- **Features**: Interactive chat session with context-aware answers
+
 ### **Usage**
 ```bash
 # Run complete 3-agent pipeline (recommended)
 python main.py
 
-# Store processed data in Qdrant vector database
+# Store processed data in Qdrant (Required for RAG)
 python store_data.py
+
+# Start the Chat Interface
+python chat.py
+# Or ask a specific question
+python chat.py "ኤርትራ እንታይ እያ?"
 
 # Run individual agents
 python agent_tagger.py    # POS tagging only
