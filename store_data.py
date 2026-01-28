@@ -70,7 +70,7 @@ def create_embedding_model():
 
     # Initialize Google Generative AI embeddings
     embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/text-embedding-004",  # Google's latest embedding model
+        model="models/gemini-embedding-001",
         google_api_key=api_key
     )
 
