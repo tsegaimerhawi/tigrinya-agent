@@ -19,6 +19,7 @@ Usage:
 import json
 import os
 import argparse
+import time
 from pathlib import Path
 from typing import List, Optional
 from dotenv import load_dotenv
@@ -31,6 +32,7 @@ from preprocessor import fix_character_duplication, split_into_sentences
 from llama_index.core import Document, VectorStoreIndex, Settings
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
+from google.genai.errors import ClientError
 
 # Load environment variables from multiple sources
 # Try .env first, then .env_config, but don't override existing env vars
@@ -137,6 +139,8 @@ def run_ingestion(
     qdrant_host: str = "localhost",
     qdrant_port: int = 6333,
     limit: Optional[int] = None,
+    batch_size: int = 50,
+    delay_between_batches: int = 60,
 ):
     """Run the full LlamaIndex ingestion pipeline."""
 
@@ -243,13 +247,70 @@ def run_ingestion(
         enable_hybrid=False,
     )
 
-    # 5. Build index and store
+    # 5. Build index and store with rate limiting
     print("\n💾 Building index and storing in Qdrant...")
-    index = VectorStoreIndex.from_documents(
-        documents,
-        vector_store=vector_store,
-        show_progress=True,
-    )
+    print(f"   Processing {len(documents)} documents with rate limiting...")
+    print("   ⚠️  Free tier limit: 100 requests/minute")
+    
+    # Process in batches to respect rate limits
+    # Free tier: 100 requests/minute = ~1.67 requests/second
+    # Default: 50 requests per batch with 60 second delay = safe margin
+    
+    total_batches = (len(documents) + batch_size - 1) // batch_size
+    print(f"   Will process in {total_batches} batches of {batch_size} documents")
+    print(f"   Delay between batches: {delay_between_batches}s")
+    
+    def process_batch(batch_docs, max_retries=5):
+        """Process a batch of documents with retry logic."""
+        for attempt in range(max_retries):
+            try:
+                return VectorStoreIndex.from_documents(
+                    batch_docs,
+                    vector_store=vector_store,
+                    show_progress=False,  # Disable progress bar for batches
+                )
+            except ClientError as e:
+                if e.status_code == 429 and attempt < max_retries - 1:
+                    retry_after = 60  # Default wait time
+                    # Extract retry delay from error message
+                    try:
+                        import re
+                        error_str = str(e)
+                        # Look for "Please retry in X.XXs" pattern
+                        match = re.search(r'Please retry in ([\d.]+)s', error_str)
+                        if match:
+                            retry_after = int(float(match.group(1))) + 5  # Add buffer
+                    except:
+                        pass
+                    
+                    wait_time = min(retry_after * (2 ** attempt), 300)  # Exponential backoff, max 5 min
+                    print(f"   ⚠️  Rate limit hit (attempt {attempt + 1}/{max_retries}). Waiting {wait_time}s...")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    raise
+        raise Exception(f"Failed to process batch after {max_retries} attempts")
+    
+    for batch_num in range(total_batches):
+        start_idx = batch_num * batch_size
+        end_idx = min(start_idx + batch_size, len(documents))
+        batch_docs = documents[start_idx:end_idx]
+        
+        print(f"\n   Processing batch {batch_num + 1}/{total_batches} ({len(batch_docs)} documents)...")
+        
+        try:
+            process_batch(batch_docs)
+            print(f"   ✅ Batch {batch_num + 1} completed")
+        except Exception as e:
+            print(f"   ❌ Error processing batch {batch_num + 1}: {e}")
+            raise
+        
+        # Wait between batches (except for the last one)
+        if batch_num < total_batches - 1:
+            print(f"   ⏳ Waiting {delay_between_batches}s before next batch...")
+            time.sleep(delay_between_batches)
+    
+    print("\n   ✅ All batches processed successfully!")
 
     # 6. Summary
     info = client.get_collection(collection_name)
@@ -268,6 +329,8 @@ def main():
     parser.add_argument("--collection", default="tigrinya_llamaindex", help="Qdrant collection name")
     parser.add_argument("--qdrant-host", default="localhost", help="Qdrant host")
     parser.add_argument("--qdrant-port", type=int, default=6333, help="Qdrant port")
+    parser.add_argument("--batch-size", type=int, default=50, help="Number of documents per batch (default: 50)")
+    parser.add_argument("--batch-delay", type=int, default=60, help="Delay between batches in seconds (default: 60)")
 
     args = parser.parse_args()
 
@@ -277,6 +340,8 @@ def main():
         qdrant_host=args.qdrant_host,
         qdrant_port=args.qdrant_port,
         limit=args.limit,
+        batch_size=args.batch_size,
+        delay_between_batches=args.batch_delay,
     )
 
 
