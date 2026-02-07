@@ -4,8 +4,13 @@ A comprehensive tool for scraping, processing, and analyzing Haddas Ertra Tigrin
 
 ## Features
 
+### 🖥️ **Script Runner UI**
+- **Single dashboard**: Run all pipeline scripts (Scraper, PDF Processor, Llama Ingest, Pipeline, Store Data, etc.) from one web interface
+- **Live output**: Stream script output in real time
+- **Configuration**: Central popup to set scraper limit, Qdrant host/port, collection names, batch sizes
+
 ### 📥 **Data Acquisition**
-- 🕷️ **Automated Scraping**: Downloads up to 20+ Haddas Ertra newspaper PDFs
+- 🕷️ **Automated Scraping**: Download a configurable number of Haddas Ertra newspaper PDFs (default 20)
 - 📄 **Multi-page Navigation**: Handles pagination to access older articles
 - 🔍 **Smart PDF Detection**: Locates download links using image-based navigation
 
@@ -87,12 +92,27 @@ For vector storage and semantic search capabilities:
 
 ## Usage
 
-### Step 1: Scrape and Download PDFs
+### Script Runner UI (recommended)
 
-Run the scraper to download Haddas Ertra newspapers:
+Run all pipeline scripts from a single web interface with live output and central configuration:
+
+```bash
+python script_runner.py
+```
+
+Then open **http://localhost:8765** in your browser. You can:
+
+- **Configuration** — Click **Configuration** to open a popup and set all variables (scraper limit, Qdrant host/port, collection names, batch sizes, etc.). Values are saved to `runner_config.json`.
+- **Run scripts** — Use the buttons to run: Scraper, PDF Processor, Llama Ingest, Run Pipeline, Store Data, Store Sentences, Check Qdrant, Test RAG, Validate Results. Output streams in real time.
+
+### Command-line usage
+
+#### Step 1: Scrape and Download PDFs
 
 ```bash
 python scraper.py
+# Or limit the number of newspapers:
+python scraper.py --limit 10
 ```
 
 This will:
@@ -101,9 +121,7 @@ This will:
 - Download PDFs using direct links
 - Save metadata to `pdf_metadata.json`
 
-### Step 2: Process and Extract Text
-
-Process the downloaded PDFs to extract clean Tigrinya text:
+#### Step 2: Process and Extract Text
 
 ```bash
 python pdf_processor.py
@@ -115,9 +133,7 @@ This will:
 - Keep only Ge'ez script characters (መበል, ዓመት, ኤርትራውያን, etc.)
 - Save structured JSON to `raw_data.json`
 
-### Step 3: Validate Results
-
-Check the processing results:
+#### Step 3: Validate Results
 
 ```bash
 python validate_results.py
@@ -132,10 +148,23 @@ This shows:
 
 ```
 tigrinya-agent/
-├── scraper.py              # PDF downloader and scraper
-├── pdf_processor.py        # Text extraction and cleaning
-├── validate_results.py     # Results validation script
-├── pdf_metadata.json       # Download tracking metadata
+├── script_runner.py       # Web UI to run scripts and configure (port 8765)
+├── runner_config.json     # Central config (scraper limit, Qdrant, batch sizes, etc.)
+├── scraper.py             # PDF downloader (--limit N)
+├── pdf_processor.py       # Text extraction and cleaning
+├── llama_ingest.py        # LlamaIndex ingestion into Qdrant
+├── run_pipeline.py        # Full NLP pipeline (tagger → critic → refiner)
+├── store_data.py          # Store refined articles in Qdrant
+├── store_sentences.py     # Store sentences in Qdrant
+├── agent_tagger.py        # POS tagging agent
+├── agent_critic.py        # Grammar validation agent
+├── agent_refiner.py       # Data structuring agent
+├── retriever.py           # Qdrant semantic search
+├── agent_rag.py           # RAG question-answering agent
+├── app.py                 # Streamlit chat UI
+├── validate_results.py    # Results validation script
+├── check_qdrant.py        # Qdrant connection check
+├── pdf_metadata.json      # Download tracking metadata
 ├── raw_data.json          # Processed text data
 ├── requirements.txt       # Python dependencies
 ├── pdfs/                  # Downloaded PDF files (gitignored)
@@ -164,21 +193,21 @@ tigrinya-agent/
 
 ## Configuration
 
-### Changing Number of Articles
+When using the **Script Runner UI**, click **Configuration** to edit all settings in one place (saved to `runner_config.json`). Configurable values include:
 
-Edit `scraper.py` and modify the `max_articles` variable:
+- **Scraper:** number of newspapers to scrape
+- **Paths:** PDF directory
+- **Qdrant:** host, port
+- **Collections:** LlamaIndex, corpus, and sentences collection names
+- **Batch sizes:** Llama ingest batch size and delay; pipeline sentences per article; store-sentences batch size
 
-```python
-max_articles = 20  # Change this number
+When running scripts from the command line, you can still override scraper limit:
+
+```bash
+python scraper.py --limit 30
 ```
 
-### Rate Limiting
-
-The scraper includes 4-second delays between downloads. Adjust in `scraper.py`:
-
-```python
-time.sleep(4)  # Change delay time
-```
+The scraper uses a 4-second delay between downloads (configurable in `scraper.py` if needed).
 
 ## Text Cleaning Features
 
@@ -318,7 +347,9 @@ python agent_refiner.py   # Data structuring only
 - **playwright**: Web scraping and browser automation
 - **pdfplumber**: PDF text extraction
 - **requests**: HTTP downloads
-- **pandas** (future): Data analysis features
+- **fastapi**, **uvicorn**: Script Runner web UI
+- **streamlit**: Chat interface (optional)
+- **qdrant-client**, **llama-index**, **langchain-google-genai**: Vector store and RAG
 
 ## License
 
