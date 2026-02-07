@@ -7,6 +7,8 @@ google-generativeai
 python-dotenv
 pdfplumber
 streamlit
+fastapi
+uvicorn[standard]
 
 # LlamaIndex
 llama-index
