@@ -209,10 +209,10 @@ def main():
     print("🚀 Starting Tigrinya Corpus Storage in Qdrant")
     print("=" * 50)
 
-    # Configuration
-    QDRANT_URL = "localhost"
-    QDRANT_PORT = 6333
-    COLLECTION_NAME = "tigrinya_corpus"
+    # Configuration (env vars set by script runner when using Configuration)
+    QDRANT_URL = os.environ.get("QDRANT_HOST", "localhost")
+    QDRANT_PORT = int(os.environ.get("QDRANT_PORT", "6333"))
+    COLLECTION_NAME = os.environ.get("COLLECTION_CORPUS", "tigrinya_corpus")
 
     try:
         # Connect to Qdrant

@@ -19,8 +19,10 @@ class TigrinyaRetriever:
     """Retriever for Tigrinya Qdrant Collection"""
     
     def __init__(self, host: str = "localhost", port: int = 6333, collection_name: str = "tigrinya_corpus"):
-        self.collection_name = collection_name
-        
+        host = os.environ.get("QDRANT_HOST", host)
+        port = int(os.environ.get("QDRANT_PORT", str(port)))
+        self.collection_name = os.environ.get("COLLECTION_CORPUS", collection_name)
+
         # Initialize Client
         self.client = QdrantClient(host=host, port=port)
         

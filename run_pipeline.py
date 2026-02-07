@@ -47,7 +47,7 @@ class TigrinyaPipeline:
     """Complete Tigrinya NLP Pipeline with Qdrant storage"""
     
     def __init__(self, qdrant_host: str = "localhost", qdrant_port: int = 6333):
-        self.collection_name = "tigrinya_corpus"
+        self.collection_name = os.environ.get("COLLECTION_CORPUS", "tigrinya_corpus")
         
         # Initialize Qdrant client
         print("🔌 Connecting to Qdrant...")

@@ -1,0 +1,13 @@
+{
+  "scraper_limit": 20,
+  "pdf_dir": "pdfs",
+  "qdrant_host": "localhost",
+  "qdrant_port": 6333,
+  "collection_llamaindex": "tigrinya_llamaindex",
+  "collection_corpus": "tigrinya_corpus",
+  "collection_sentences": "tigrinya_sentences",
+  "llama_batch_size": 50,
+  "llama_batch_delay": 60,
+  "pipeline_sentences_per_article": 20,
+  "store_sentences_batch_size": 20
+}

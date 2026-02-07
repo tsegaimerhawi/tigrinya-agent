@@ -37,7 +37,7 @@ class SentenceStore:
     """Store Tigrinya sentences in Qdrant with embeddings"""
     
     def __init__(self, qdrant_host: str = "localhost", qdrant_port: int = 6333):
-        self.collection_name = "tigrinya_sentences"
+        self.collection_name = os.environ.get("COLLECTION_SENTENCES", "tigrinya_sentences")
         
         # Initialize Qdrant client
         print("🔌 Connecting to Qdrant...")

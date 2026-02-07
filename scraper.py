@@ -3,10 +3,11 @@ import json
 import time
 import requests
 import os
+import argparse
 from playwright.async_api import async_playwright
 
 
-async def scrape_articles():
+async def scrape_articles(max_articles: int = 20):
     """Scrape and download Haddas Ertra PDFs."""
 
     async with async_playwright() as p:
@@ -16,7 +17,6 @@ async def scrape_articles():
         try:
             # Collect article URLs from multiple pages
             article_urls = []
-            max_articles = 20
 
             for page_num in range(1, 51):  # Check up to 50 pages
                 print(f"Processing page {page_num}...")
@@ -167,8 +167,11 @@ async def scrape_articles():
 
 async def main():
     """Main function."""
-    print("Starting Haddas Ertra PDF downloader...")
-    await scrape_articles()
+    parser = argparse.ArgumentParser(description="Download Haddas Ertra newspaper PDFs")
+    parser.add_argument("--limit", type=int, default=20, help="Max number of newspapers to scrape (default: 20)")
+    args = parser.parse_args()
+    print(f"Starting Haddas Ertra PDF downloader (limit: {args.limit})...")
+    await scrape_articles(max_articles=args.limit)
 
 
 if __name__ == "__main__":
